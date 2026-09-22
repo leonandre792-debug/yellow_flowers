@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti 💛</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #050505;
+        overflow: hidden;
+        font-family: Georgia, serif;
+        color: white;
+    }
+
+    canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .mensaje {
+        position: fixed;
+        left: 50%;
+        bottom: 7%;
+        transform: translateX(-50%);
+        width: 90%;
+        text-align: center;
+        opacity: 0;
+        animation: aparecer 3s ease forwards;
+        animation-delay: 7s;
+        text-shadow: 0 0 15px #ffd700;
+        z-index: 2;
+    }
+
+    .mensaje h1 {
+        color: #ffd700;
+        font-size: clamp(28px, 8vw, 55px);
+        margin: 0 0 10px;
+    }
+
+    .mensaje p {
+        font-size: clamp(17px, 4vw, 24px);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    @keyframes aparecer {
+        from {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="flores"></canvas>
+
+<div class="mensaje">
+    <h1>Para ti 💛</h1>
+    <p>
+        Porque hay personas que hacen que todo florezca... 🌻<br>
+        y tú eres una de ellas.
+    </p>
+</div>
+
+<script>
+const canvas = document.getElementById("flores");
+const ctx = canvas.getContext("2d");
+
+let W, H;
+let flores = [];
+let particulas = [];
+
+function resize() {
+    W = canvas.width = window.innerWidth * devicePixelRatio;
+    H = canvas.height = window.innerHeight * devicePixelRatio;
+
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+function crearFlor(x, y, escala, retraso) {
+    flores.push({
+        x,
+        y,
+        escala,
+        retraso,
+        progreso: 0,
+        rotacion: Math.random() * Math.PI
+    });
+}
+
+function dibujarFlor(flor) {
+    if (flor.progreso <= 0) return;
+
+    const x = flor.x;
+    const y = flor.y;
+    const s = flor.escala * flor.progreso;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(flor.rotacion);
+
+    // Tallo
+    ctx.strokeStyle = "#238b35";
+    ctx.lineWidth = 4 * flor.escala;
+    ctx.beginPath();
+    ctx.moveTo(0, 10 * s);
+    ctx.quadraticCurveTo(
+        -15 * s,
+        70 * s,
+        -8 * s,
+        140 * s
+    );
+    ctx.stroke();
+
+    // Hoja izquierda
+    ctx.fillStyle = "#2e9e3f";
+    ctx.beginPath();
+    ctx.ellipse(
+        -15 * s,
+        75 * s,
+        12 * s,
+        35 * s,
+        -0.7,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    // Hoja derecha
+    ctx.beginPath();
+    ctx.ellipse(
+        5 * s,
+        105 * s,
+        11 * s,
+        32 * s,
+        0.7,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    // Pétalos
+    const petalos = 16;
+
+    for (let i = 0; i < petalos; i++) {
+        const a = (Math.PI * 2 / petalos) * i;
+
+        ctx.save();
+        ctx.rotate(a);
+
+        const gradiente = ctx.createRadialGradient(
+            0, -35 * s, 2,
+            0, -35 * s, 28 * s
+        );
+
+        gradiente.addColorStop(0, "#fff36a");
+        gradiente.addColorStop(0.5, "#ffd21c");
+        gradiente.addColorStop(1, "#f2a900");
+
+        ctx.fillStyle = gradiente;
+
+        ctx.beginPath();
+        ctx.ellipse(
+            0,
+            -35 * s,
+            14 * s,
+            35 * s,
+            0,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // Centro
+    const centro = ctx.createRadialGradient(
+        0, 0, 2,
+        0, 0, 25 * s
+    );
+
+    centro.addColorStop(0, "#8b5a00");
+    centro.addColorStop(0.7, "#5c3700");
+    centro.addColorStop(1, "#2f1b00");
+
+    ctx.fillStyle = centro;
+    ctx.beginPath();
+    ctx.arc(0, 0, 25 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+// Crear flores en distintas posiciones
+function prepararFlores() {
+    flores = [];
+
+    const posiciones = [
+        [20, 85, 0.45],
+        [50, 78, 0.55],
+        [80, 84, 0.45],
+        [35, 72, 0.65],
+        [65, 70, 0.65],
+        [50, 55, 0.8],
+        [20, 58, 0.55],
+        [80, 58, 0.55],
+        [35, 45, 0.65],
+        [65, 43, 0.65],
+        [50, 30, 0.75]
+    ];
+
+    posiciones.forEach((p, i) => {
+        crearFlor(
+            window.innerWidth * p[0] / 100,
+            window.innerHeight * p[1] / 100,
+            p[2],
+            i * 350
+        );
+    });
+}
+
+prepararFlores();
+
+let inicio = performance.now();
+
+function animar(tiempo) {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    // Fondo con pequeñas luces
+    for (let i = 0; i < 40; i++) {
+        const x = (i * 97) % window.innerWidth;
+        const y = (i * 53) % window.innerHeight;
+
+        ctx.fillStyle = "rgba(255,215,0,0.25)";
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    flores.forEach(flor => {
+        const transcurrido = tiempo - inicio - flor.retraso;
+
+        flor.progreso = Math.min(
+            1,
+            Math.max(0, transcurrido / 1200)
+        );
+
+        dibujarFlor(flor);
+    });
+
+    requestAnimationFrame(animar);
+}
+
+requestAnimationFrame(animar);
+</script>
+
+</body>
+</html>
